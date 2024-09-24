@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= params["title"] ||= "Jonas Everaert"%></title>
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <script type="text/javascript" charset="utf-8" src="node_modules/@kor-ui/kor/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="node_modules/@kor-ui/kor/kor-styles.css"/>
+    <%= params["head"] ||= "" %>
+    <style>
+      .desktop-nav {
+        display: contents;
+      }
+
+      .mobile-nav-bar {
+        display: none;
+      }
+      .mobile-nav {
+        display: none;
+      }
+
+      @media only screen and (max-width: 600px) {
+        .desktop-nav {
+          display: none;
+        }
+
+        .mobile-nav-bar {
+          display: flex;
+        }
+        .mobile-nav {
+          display: contents;
+        }
+      }
+
+      .body-spacing {
+        margin-top: 1.5rem;
+      }
+
+      .scroll-view {
+        overflow-y: auto;
+        overflow-x: hidden;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <kor-page flex-direction="column">
+      <kor-app-bar
+        class="mobile-nav-bar clickable"
+        id="mobile-nav-bar"
+        slot="top"
+        mobile
+        label="Jonas Everaert"
+      >
+        <kor-icon button icon="more_vert" slot="right" onclick="document.querySelector('#mobile-nav-more').visible = true"></kor-icon>
+      </kor-app-bar>
+      <div class="mobile-nav">
+        <kor-drawer id="mobile-nav-more" label="Menu" position="right" flex-direction="column">
+          <%= menu_mobile %>
+        </kor-drawer>
+      </div>
+      <div class="desktop-nav">
+        <kor-app-bar
+          class="clickable"
+          id="desktop-nav-bar"
+          label="Jonas Everaert"
+        >
+          <%= menu_desktop %>
+          <kor-icon button icon="brightness_medium" slot="functions" size="m" onclick="toggleTheme()"></kor-icon>
+        </kor-app-bar>
+      </div/>
+
+      <div class="scroll-view">
+        <%= body %>
+      </div>
+    </kor-page>
+
+    <script>
+      // Theme
+      html_root = document.querySelector("html");
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+        html_root.setAttribute("theme", "dark");
+      else
+        html_root.setAttribute("theme", "light");
+
+      // Navigation home
+      const mobileNavHome = document.querySelector("#mobile-nav-bar").shadowRoot.children[1];
+      mobileNavHome.onclick = () => window.open("/", "_self");
+
+      const desktopNavHome = document.querySelector("#desktop-nav-bar").shadowRoot.children[0];
+      desktopNavHome.onclick = () => window.open("/", "_self");
+
+      ////////////////
+      function toggleTheme() {
+        console.log(html_root.getAttribute("theme"));
+        switch (html_root.getAttribute("theme")) {
+          case "dark":
+            html_root.setAttribute("theme", "light")
+            break;
+          case "light":
+            html_root.setAttribute("theme", "dark");
+            break;
+          default:
+            html_root.setAttribute("theme", "light");
+        }
+      }
+
+      document.querySelectorAll(".clickable").forEach((elem) => {
+        elem.style += ";cursor: pointer;";
+      });
+    </script>
+  </body>
+</html>

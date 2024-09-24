@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# PROVIDE: website
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name=website
+rcvar=website_enable
+
+load_rc_config $name
+
+: ${website_enable="YES"}
+: ${sites_home_dir:="/root/sites"}
+
+
+pidfile="/var/run/service_${name}.pid"
+procname=/usr/local/share/${name}/${name}
+command=sh
+command_args="${sites_home_dir}/${name}/pot_start.sh"
+
+run_rc_command "$1"

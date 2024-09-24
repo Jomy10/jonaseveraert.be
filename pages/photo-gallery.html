@@ -1,0 +1,177 @@
+---
+title = Photo gallery
+templating = true
+# head = <script src="https://unpkg.com/enter-view"></script>
+@preload_image_count = 4
+---
+
+<style>
+  :root {
+    --grid-image-size: 10px;
+  }
+
+  .grid {
+    position: relative;
+  }
+
+  .grid-item {
+    position: absolute;
+    width: var(--grid-image-size);
+    overflow: hidden;
+    padding: 10px;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  .grid-image {
+    width: 100%;
+    transition-delay: 0.5s;
+    transition: transform 1.5s;
+    opacity: 0;
+    -webkit-transition: all 1.5s ease;
+    -moz-transition: all 1.5s ease;
+    -ms-transition: all 1.5s ease;
+    -o-transition: all 1.5s ease;
+    transition: all 1.5s ease;
+  }
+</style>
+
+<section id="photos" class="grid">
+  <% (1...((params["@preload_image_count"].to_i)+1)).each do |id| %>
+    <div class="grid-item">
+      <img class="grid-image" src="<%= $site_url %>/image/gallery/<%= id %>" onload="this.style.opacity=1">
+    </div>
+  <% end %>
+</section>
+
+<script>
+  const gridElement = document.querySelector(".grid");
+
+  const grid_items = Array.from(document.querySelectorAll(".grid-item"));
+  grid_items
+    .slice(Math.max(grid_items.length - 4, 0))
+    .forEach((el) => {
+      el.classList.add("defer-load");
+    });
+
+  /// check image visible OR above view
+  function checkVisible(elm) {
+    var rect = elm.getBoundingClientRect();
+    var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+    return !(rect.top - viewHeight >= 0);
+  }
+
+  /// each animation frame check if a new image appeared, or we passed an image and it is loaded,
+  /// then load a new image
+  const deferLoad = () => {
+    let recalculate = false;
+    document.querySelectorAll(".defer-load").forEach((el) => {
+      if (el != null)
+        if (el.children[0].complete) {
+          if (checkVisible(el)) {
+            el.classList.remove("defer-load");
+            fetchNextImage();
+            // addImage(`https://picsum.photos/${Math.round(Math.random() * 1000)}/${Math.round(Math.random() * 1000)}`);
+            recalculate = true;
+          }
+        }
+    });
+
+    if (recalculate)
+      grid.recalculate();
+
+    requestAnimationFrame(deferLoad);
+  };
+
+  window.onload = () =>  {
+    requestAnimationFrame(deferLoad);
+  }
+
+  /// Loading images after initial page load
+  function addImage(src) {
+    console.log(src);
+    let divElement = document.createElement("div");
+    divElement.className = "grid-item defer-load";
+    let imgElement = document.createElement("img");
+    imgElement.className = "grid-image";
+    imgElement.src = src;
+    imgElement.onload = (_this) => { _this.target.style.opacity = 1 };
+    imgElement.onerror = (_this) => { _this.target.remove(); };
+    divElement.appendChild(imgElement);
+    gridElement.appendChild(divElement);
+
+    return imgElement;
+  }
+
+  let imageCount = <%= params["@preload_image_count"] %>;
+  function fetchNextImage() {
+    //let imgSrc = `https://picsum.photos/${Math.round(Math.random() * 1000)}/${Math.round(Math.random() * 1000)}`;
+    let imgSrc = `<%= $site_url %>/image/gallery/${imageCount++}`
+    addImage(imgSrc);
+  }
+
+  class Grid {
+    constructor(imageSize, columnCount) {
+      this.imageWidth = imageSize;
+      this.columnCount = columnCount;
+      this.root = document.querySelector(":root");
+      this.downmostElements = [];
+    }
+
+    setImageSize(size) {
+      this.imageWidth = size;
+    }
+
+    setColumnCount(count) {
+      this.columnCount = count;
+    }
+
+    recalculate() {
+      // Change image size
+      document.querySelector(":root").style.setProperty("--grid-image-size", `${this.imageWidth}px`);
+
+      // Rearrange elements
+      const firstIndexOfMinValue = (arr) => arr.reduce((r, v, i ,a) => v >= a[r] ? r : i, -1);
+
+      const rearrangeGrid = () => {
+        const gridItems = document.querySelectorAll(".grid-item");
+        let columnHeights = new Array(this.columnCount).fill(0);
+        for (let i = 0; i < gridItems.length; i++) {
+          const columnIndex = firstIndexOfMinValue(columnHeights);
+          const itemXPos = columnIndex * this.imageWidth;
+          const itemYPos = columnHeights[columnIndex];
+          gridItems[i].style.transform = `translateX(${itemXPos}px) translateY(${itemYPos}px)`;
+          columnHeights[columnIndex] += gridItems[i].offsetHeight - 5; // remove bottom border between images
+        }
+      };
+
+      rearrangeGrid();
+    }
+  }
+
+  const determineColCount = (gridElement) => {
+    return Math.round(gridElement.clientWidth / 350);
+  };
+
+  const determineImageSize = (gridElement) => {
+    return gridElement.clientWidth / determineColCount(gridElement);
+  };
+
+  let grid = new Grid(determineImageSize(gridElement), determineColCount(gridElement));
+  window.addEventListener("load", (_) => {
+    grid.recalculate()
+    // Scrollbar isn't used on first draw, so do it again
+    grid.setImageSize(determineImageSize(gridElement));
+    grid.setColumnCount(determineColCount(gridElement));
+    grid.recalculate()
+  });
+
+  window.addEventListener("resize", (e) => {
+    grid.setImageSize(determineImageSize(gridElement));
+    grid.setColumnCount(determineColCount(gridElement));
+    grid.recalculate();
+  });
+
+  // observeEndImages();
+</script>
