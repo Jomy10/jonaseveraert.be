@@ -17,7 +17,7 @@ load_rc_config $name
 
 pidfile="/var/run/service_${name}.pid"
 procname=/usr/local/share/${name}/${name}
-command=sh
-command_args="${sites_home_dir}/${name}/pot_start.sh"
+command=podman
+command_args="run --rm --network=host website"
 
 run_rc_command "$1"

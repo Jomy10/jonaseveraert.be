@@ -28,5 +28,13 @@ ruby src/main.rb
 ## Running on FreeBSD
 
 ```sh
-sh pot.sh
+sh build.sh
+podman run --network=host --rm website
+```
+
+## rc script
+
+```sh
+ln $(pwd)/rc_script /usr/local/etc/rc.d
+chmod a+x /usr/local/etc/rc.d
 ```
