@@ -7,7 +7,7 @@ require 'csv'
 require 'sqlite3'
 require_relative './page_def.rb'
 
-set :port, 8000
+set :port, 6000
 
 $db = SQLite3::Database.new "./data/data.db"
 

@@ -15,9 +15,16 @@ load_rc_config $name
 : ${sites_home_dir:="/root/sites"}
 
 pidfile="/var/run/site_${name}.pid"
-procname=/usr/local/share/${name}/${name}
+procname=/usr/sbin/daemon
 # https://man.freebsd.org/cgi/man.cgi?query=daemon
-command=/usr/sbin/daemon
-command_args="-c -f -P ${pidfile} -r /usr/local/bin/podman run --rm --network=host website"
+command=$procname
+command_args="--change-dir \
+  --sighup \
+  --output-file /var/log/website \
+  -P ${pidfile} \
+  --restart \
+  --title website \
+  --syslog-tag website_daemon \
+  /usr/local/bin/podman run --rm --network=host website"
 
 run_rc_command "$1"
