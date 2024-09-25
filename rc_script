@@ -14,10 +14,10 @@ load_rc_config $name
 : ${website_enable="YES"}
 : ${sites_home_dir:="/root/sites"}
 
-
-pidfile="/var/run/service_${name}.pid"
+pidfile="/var/run/site_${name}.pid"
 procname=/usr/local/share/${name}/${name}
-command=podman
-command_args="run --rm --network=host website"
+# https://man.freebsd.org/cgi/man.cgi?query=daemon
+command=/usr/sbin/daemon
+command_args="-c -f -P ${pidfile} -r /usr/local/bin/podman run --rm --network=host website"
 
 run_rc_command "$1"

@@ -35,6 +35,6 @@ podman run --network=host --rm website
 ## rc script
 
 ```sh
-ln $(pwd)/rc_script /usr/local/etc/rc.d
-chmod a+x /usr/local/etc/rc.d
+ln $(pwd)/rc_script /usr/local/etc/rc.d/website
+chmod a+x /usr/local/etc/rc.d/website
 ```
