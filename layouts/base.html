@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title><%= params["title"] ||= "Jonas Everaert"%></title>
-    <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <script type="text/javascript" charset="utf-8" src="node_modules/@kor-ui/kor/index.js"></script>
-    <link rel="stylesheet" type="text/css" href="node_modules/@kor-ui/kor/kor-styles.css"/>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <script type="text/javascript" charset="utf-8" src="/node_modules/@kor-ui/kor/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="/node_modules/@kor-ui/kor/kor-styles.css"/>
     <%= params["head"] ||= "" %>
     <style>
       .desktop-nav {
@@ -58,7 +58,7 @@
       </kor-app-bar>
       <div class="mobile-nav">
         <kor-drawer id="mobile-nav-more" label="Menu" position="right" flex-direction="column">
-          <%= menu_mobile %>
+          <%= menu_mobile ||= "" %>
         </kor-drawer>
       </div>
       <div class="desktop-nav">
@@ -67,7 +67,7 @@
           id="desktop-nav-bar"
           label="Jonas Everaert"
         >
-          <%= menu_desktop %>
+          <%= menu_desktop ||= "" %>
           <kor-icon button icon="brightness_medium" slot="functions" size="m" onclick="toggleTheme()"></kor-icon>
         </kor-app-bar>
       </div/>

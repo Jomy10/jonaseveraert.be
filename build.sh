@@ -1,1 +1,4 @@
-podman build -t website --network=host .
+podman build \
+  -t website \
+  --network=host \
+  .
