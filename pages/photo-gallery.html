@@ -68,14 +68,17 @@ templating = true
     let recalculate = false;
     document.querySelectorAll(".defer-load").forEach((el) => {
       if (el != null)
-        if (el.children[0].complete) {
-          if (checkVisible(el)) {
-            el.classList.remove("defer-load");
-            fetchNextImage();
-            // addImage(`https://picsum.photos/${Math.round(Math.random() * 1000)}/${Math.round(Math.random() * 1000)}`);
-            recalculate = true;
+        if (el.children == null || el.children.length == 0)
+          console.warn(el);
+        else
+          if (el.children[0].complete) {
+            if (checkVisible(el)) {
+              el.classList.remove("defer-load");
+              fetchNextImage();
+              // addImage(`https://picsum.photos/${Math.round(Math.random() * 1000)}/${Math.round(Math.random() * 1000)}`);
+              recalculate = true;
+            }
           }
-        }
     });
 
     if (recalculate)

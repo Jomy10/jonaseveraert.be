@@ -15,7 +15,7 @@ get '/image/gallery/:id' do
     next [404, {}, "Image does not exist"]
   end
 
-  path = path[0][0]
+  path = File.join "./assets/images/", path[0][0]
 
   if !File.exist?(path)
     next [404, {}, "Image does not exist"]
