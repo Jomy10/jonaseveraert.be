@@ -6,7 +6,7 @@ RUN pkg install -y \
   devel/ruby-gems \
   pkgconf \
   npm \
-  git \
+  ImageMagick7 \
   FreeBSD-clang \
   FreeBSD-runtime-dev \
   FreeBSD-utilities-dev \
@@ -14,13 +14,6 @@ RUN pkg install -y \
   FreeBSD-lld \
   FreeBSD-libcompiler_rt-dev \
   FreeBSD-libmagic-dev
-
-RUN git clone https://github.com/Jomy10/libkeycloak /libkeycloak
-WORKDIR /libkeycloak
-
-RUN gem install colorize
-RUN ruby build.rb build dynamic
-RUN cp build/libkeycloak.so /usr/local/lib/libkeycloak.so
 
 COPY . /website
 WORKDIR /website
@@ -30,7 +23,8 @@ RUN bundler install
 RUN npm install # bun doesn't work on FreeBSD yet
 RUN ruby init.rb
 
-RUN pkg uninstall npm curl git
+RUN pkg delete npm curl
 RUN pkg clean -y
 
-CMD ["ruby", "/website/src/main.rb"]
+ENV APP_ENV=production
+CMD ["ruby", "/website/src/main.rb", "--host=https://jonaseveraert.be"]

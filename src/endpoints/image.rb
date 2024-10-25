@@ -1,21 +1,27 @@
+# Get an image for display in the photo gallery
 get '/image/gallery/:id' do
   img_id = params["id"].to_i
 
   puts "ID: #{img_id}"
 
-  path = $db.execute <<-SQL
-  select Path
+  $db_mutex.lock
+  path = $db.exec <<-SQL
+  select FileName
   from Image
   order by CreatedDate desc
   limit 1
   offset #{img_id - 1}
   SQL
+  $db_mutex.unlock
 
-  if path.size == 0
+  p "[#{img_id}] #{path.inspect}"
+
+  if path.ntuples == 0
     next [404, {}, "Image does not exist"]
   end
 
-  path = File.join "./assets/images/", path[0][0]
+  p path[0]
+  path = File.join "./assets/images/gallery", path[0]["filename"] + ".webp"
 
   if !File.exist?(path)
     next [404, {}, "Image does not exist"]

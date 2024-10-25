@@ -1,7 +1,11 @@
 require 'net/http'
-require 'sqlite3'
+require 'pg'
+require 'sem_version'
 
 Dir.mkdir("data") unless Dir.exist?("data")
+Dir.mkdir("assets/images/gallery/") unless Dir.exist?("assets/images/gallery/")
+Dir.mkdir("assets/images/original/") unless Dir.exist?("assets/images/original/")
+Dir.mkdir("assets/images/fullscreen/") unless Dir.exist?("assets/images/fullscreen/")
 
 # MIME TYPES #
 
@@ -22,33 +26,74 @@ File.write("data/mime_types.csv", csv_txt.join("\n"))
 
 # Image database #
 
-if !File.exist?("./data/data.db")
-  db = SQLite3::Database.new "./data/data.db"
+pgconn = nil
+begin
+  pgconn = PG.connect(dbname: "jonaseveraert.be")
+rescue PG::ConnectionBad => e
+  `createdb jonaseveraert.be`
+  pgconn = PG.connect(dbname: "jonaseveraert.be")
+end
 
-  db.execute <<-SQL
+version = nil
+begin
+  result = pgconn.exec("select Value from Metadata where name = 'DBVersion'");
+  if result.ntuples == 0
+    version = nil
+  else
+    version = SemVersion.new(result[0]["value"])
+  end
+rescue PG::UndefinedTable => e
+  pgconn.exec <<-SQL
   create table Metadata (
     Name text primary key not null,
     Value text not null
   );
   SQL
+  version = nil
+end
 
-  db.execute "insert into Metadata values ('DB-Version', '1.0');"
+if version.nil?
+  puts "Initializing database"
+else
+  puts "Upgrading database, current version = #{version}"
+end
 
-  db.execute <<-SQL
-  create table Image (
-    id integer primary key autoincrement,
-    Path text not null unique,
-    CreatedDate integer not null default (datetime('now','localtime'))
+if version.nil?
+  pgconn.exec <<-SQL
+  create type Category as enum (
+    'Street',
+    'Landscape',
+    'Architecture'
   );
   SQL
 
-  db.execute <<-SQL
-  create index Image_idx1_path on Image(Path);
+  pgconn.exec <<-SQL
+  create type Series as enum ();
   SQL
-  db.execute <<-SQL
-  create index Image_idx2_created on Image(CreatedDate);
+
+  pgconn.exec <<-SQL
+  create table Image (
+    Id serial primary key,
+    FileName text not null unique,
+    Category Category,
+    Series Series,
+    CreatedDate timestamp with time zone default now()
+  );
   SQL
-  db.execute <<-SQL
-  create index Image_idx3 on Image(Path, CreatedDate);
+
+  # Index for order by with newest first
+  pgconn.exec <<-SQL
+  create index image_timestamp on Image (CreatedDate desc);
+  SQL
+
+  pgconn.exec <<-SQL
+  insert into Metadata (Name, Value)
+  values ('DBVersion', '1.0.0')
   SQL
 end
+
+puts "All done!"
+
+# if SemVersion.new("1.0.1") > version
+#   puts "yes"
+# end

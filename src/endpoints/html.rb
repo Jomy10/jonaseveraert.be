@@ -1,4 +1,3 @@
-
 # Serve HTML (with templating)
 get '/*' do |path|
   begin

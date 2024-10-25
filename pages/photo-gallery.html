@@ -110,7 +110,7 @@ templating = true
   let imageCount = <%= params["@preload_image_count"] %>;
   function fetchNextImage() {
     //let imgSrc = `https://picsum.photos/${Math.round(Math.random() * 1000)}/${Math.round(Math.random() * 1000)}`;
-    let imgSrc = `<%= $site_url %>/image/gallery/${imageCount++}`
+    let imgSrc = `<%= $site_url %>/image/gallery/${++imageCount}`
     addImage(imgSrc);
   }
 
