@@ -12,10 +12,16 @@ pot create \
   -t single
 
 # Copy files
-pot mount-in \
+pot copy-in \
   -p $POT_NAME \
-  -d "$(pwd)" \
-  -m /website
+  -s "$(pwd)" \
+  -d /website
+
+# Mount images folder
+pot mount-in \
+    -p $POT_NAME \
+    -d "/root/data/jonaseveraert.be/images" \
+    -m "/webiste/assets/images"
 
 # Copy init shell
 pot copy-in \
@@ -23,11 +29,11 @@ pot copy-in \
   -s pot_init.sh \
   -d /pot_init.sh
 
-pot run $POT_NAME
+pot start $POT_NAME
 
 pot exec -p $POT_NAME sh /pot_init.sh
 
-pot set-cmd -p $POT_NAME -c "cd /website && ruby src/main.rb"
+pot set-cmd -p $POT_NAME -c "APP_ENV=production sh -c 'cd /website && ruby src/main.rb'"
 
 pot stop $POT_NAME
 

@@ -2,6 +2,8 @@ require 'net/http'
 require 'pg'
 require 'sem_version'
 
+puts "Initializing..."
+
 Dir.mkdir("data") unless Dir.exist?("data")
 Dir.mkdir("assets/images/gallery/") unless Dir.exist?("assets/images/gallery/")
 Dir.mkdir("assets/images/original/") unless Dir.exist?("assets/images/original/")
@@ -26,12 +28,37 @@ File.write("data/mime_types.csv", csv_txt.join("\n"))
 
 # Image database #
 
+require 'optparse'
+
+db_user = nil
+db_pass = nil
+db_host = nil
+db_port = nil
+
+OptionParser.new do |opts|
+  opts.on("-u") do |v|
+    db_user = v
+  end
+
+  opts.on("-w") do |v|
+    db_pass = w
+  end
+
+  opts.on("-h") do |v|
+    db_host = v
+  end
+
+  opts.on("-p") do |v|
+    db_port = v.to_i
+  end
+end.parse!
+
 pgconn = nil
 begin
-  pgconn = PG.connect(dbname: "jonaseveraert.be")
+    pgconn = PG.connect(dbname: "jonaseveraert.be", host: db_host, port: db_port, user: db_user, password: db_pass)
 rescue PG::ConnectionBad => e
   `createdb jonaseveraert.be`
-  pgconn = PG.connect(dbname: "jonaseveraert.be")
+  pgconn = PG.connect(dbname: "jonaseveraert.be", host: db_host, port: db_port, user: db_user, password: db_pass)
 end
 
 version = nil
