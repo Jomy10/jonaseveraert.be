@@ -5,6 +5,10 @@ require 'csv'
 require 'pg'
 require 'libkeycloak'
 
+require_relative 'lib/config.rb'
+
+conf = load_config(ENV["APP_ENV"] || "development")
+
 # require_relative 'cli'
 
 # options = get_opts
@@ -13,15 +17,18 @@ require 'libkeycloak'
 # set :port, 6000
 # set :environment, :development
 
-if (ENV["APP_ENV"] || "development") == "development"
-  $site_url = "http://localhost:#{8000}"
-  set :port, 8000
-elsif ENV["APP_ENV"] == "production"
-  $site_url = "https://jonaseveraert.be"
-  set :port, 6000
-else
-  raise "invalid APP_ENV: #{ENV["APP_ENV"]}"
-end
+$site_url = conf["site_url"]
+set :port, conf["port"]
+
+# if (ENV["APP_ENV"] || "development") == "development"
+#   $site_url = "http://localhost:#{8000}"
+#   set :port, 8000
+# elsif ENV["APP_ENV"] == "production"
+#   $site_url = "https://jonaseveraert.be"
+#   set :port, 6000
+# else
+#   raise "invalid APP_ENV: #{ENV["APP_ENV"]}"
+# end
 
 # $site_url = options[:host] || "http://localhost:#{$port}"
 puts "URL = #{$site_url}"
@@ -29,7 +36,7 @@ puts "URL = #{$site_url}"
 
 # TODO: propper stuff
 $db_mutex = Mutex.new
-$db = PG.connect(dbname: "jonaseveraert.be")
+$db = PG.connect(dbname: "jonaseveraert.be", host: conf["db_host"], port: conf["db_port"])
 
 # MIME type lookup based on file ext
 $mime_types = {}

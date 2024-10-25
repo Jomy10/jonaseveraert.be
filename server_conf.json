@@ -1,0 +1,13 @@
+{
+  "development": {
+    "site_url": "http://localhost:8000",
+    "port": 8000,
+    "dbname": "jonaseveraert.be"
+  }, "production": {
+    "site_url": "https://jonaseveraert.be",
+    "port": 8000,
+    "dbname": "jonaseveraert.be",
+    "db_host": "localhost",
+    "db_port": 5432
+  }
+}
