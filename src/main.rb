@@ -1,3 +1,5 @@
+system "ruby init.rb"
+
 require 'sinatra'
 require 'erb'
 require 'filemagic'
