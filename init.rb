@@ -55,9 +55,12 @@ end.parse!
 
 pgconn = nil
 begin
-    pgconn = PG.connect(dbname: "jonaseveraert.be", host: db_host, port: db_port, user: db_user, password: db_pass)
+  pgconn = PG.connect(dbname: "jonaseveraert.be", host: db_host, port: db_port, user: db_user, password: db_pass)
 rescue PG::ConnectionBad => e
-  `PGPASSWORD=#{db_pass} createdb -h #{db_host} -p #{db_port} -U #{db_user} jonaseveraert.be`
+  ret = system "PGPASSWORD=#{db_pass} createdb -h #{db_host} -p #{db_port} -U #{db_user} jonaseveraert.be"
+  if !ret
+    abort("Couldn't create database")
+  end
   pgconn = PG.connect(dbname: "jonaseveraert.be", host: db_host, port: db_port, user: db_user, password: db_pass)
 end
 

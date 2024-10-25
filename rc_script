@@ -25,6 +25,6 @@ command_args="--change-dir \
   --restart \
   --title website \
   --syslog-tag website_daemon \
-  /usr/local/bin/podman run --rm --network=host --volume /root/data/jonaseveraert.be/images:/website/assets/images website"
+  /usr/local/bin/pot start website"
 
 run_rc_command "$1"

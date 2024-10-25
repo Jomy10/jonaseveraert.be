@@ -28,7 +28,7 @@ npm install
 cd /
 cat > start_server.sh <<SH
 cd /website
-PGPASSWORD=$1 APP_ENV=production ruby src/main.rb
+PGPASSWORD=$1 APP_ENV=production /usr/local/bin/ruby src/main.rb
 SH
 
 pkg delete -y npm curl
