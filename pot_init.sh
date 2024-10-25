@@ -19,11 +19,6 @@ pkg install -y \
   ImageMagick7 \
   postgresql16-client
 
-pw useradd \
-    website \
-    -d /website \
-    -m
-
 cd /website
 gem install pkg-config bundler cgi
 bundler install

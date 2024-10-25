@@ -12,7 +12,7 @@
     "db_user": "postgres",
     "db_pass": {
       "type": "env",
-      "env": "POSTGRES_PASS"
+      "env": "PGPASSWORD"
     }
   }
 }

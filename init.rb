@@ -36,19 +36,19 @@ db_host = nil
 db_port = nil
 
 OptionParser.new do |opts|
-  opts.on("-u") do |v|
+  opts.on("-u=USER") do |v|
     db_user = v
   end
 
-  opts.on("-w") do |v|
-    db_pass = w
+  opts.on("-w=PASSWORD") do |v|
+    db_pass = v
   end
 
-  opts.on("-h") do |v|
+  opts.on("-h=HOSTNAME") do |v|
     db_host = v
   end
 
-  opts.on("-p") do |v|
+  opts.on("-p=PORT") do |v|
     db_port = v.to_i
   end
 end.parse!
@@ -57,7 +57,7 @@ pgconn = nil
 begin
     pgconn = PG.connect(dbname: "jonaseveraert.be", host: db_host, port: db_port, user: db_user, password: db_pass)
 rescue PG::ConnectionBad => e
-  `createdb jonaseveraert.be`
+  `PGPASSWORD=#{db_pass} createdb -h #{db_host} -p #{db_port} -U #{db_user} jonaseveraert.be`
   pgconn = PG.connect(dbname: "jonaseveraert.be", host: db_host, port: db_port, user: db_user, password: db_pass)
 end
 

@@ -25,11 +25,11 @@ ruby init.rb
 ruby src/main.rb
 ```
 
-## Running on FreeBSD
+## Running on FreeBSD with Pot
 
 ```sh
-sh build.sh
-podman run --network=host --rm website
+sh pot_build.sh
+pot start website
 ```
 
 ## rc script

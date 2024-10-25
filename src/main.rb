@@ -15,7 +15,10 @@ conf_cmd << " -w #{conf["db_pass"]}" unless conf["db_pass"].nil?
 conf_cmd << " -h #{conf["db_host"]}" unless conf["db_host"].nil?
 conf_cmd << " -p #{conf["db_port"]}" unless conf["db_port"].nil?
 
-system "ruby #{conf_cmd}"
+ret = system "ruby #{conf_cmd}"
+if !ret
+  abort "Initialization failed"
+end
 
 # require_relative 'cli'
 
