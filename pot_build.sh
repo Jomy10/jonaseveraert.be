@@ -33,7 +33,7 @@ pot start $POT_NAME
 
 pot exec -p $POT_NAME sh /pot_init.sh
 
-pot set-cmd -p $POT_NAME -c "APP_ENV=production sh -c 'cd /website && ruby src/main.rb'"
+pot set-cmd -p $POT_NAME -c "sh start_server.sh $PGPASSWORD"
 
 pot stop $POT_NAME
 
