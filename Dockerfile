@@ -7,6 +7,7 @@ RUN pkg install -y \
   pkgconf \
   npm \
   ImageMagick7 \
+  postgresql16-client \
   FreeBSD-clang \
   FreeBSD-runtime-dev \
   FreeBSD-utilities-dev \
