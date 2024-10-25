@@ -5,7 +5,7 @@
     "dbname": "jonaseveraert.be"
   }, "production": {
     "site_url": "https://jonaseveraert.be",
-    "port": 8000,
+    "port": 6000,
     "dbname": "jonaseveraert.be",
     "db_host": "localhost",
     "db_port": 5432,
