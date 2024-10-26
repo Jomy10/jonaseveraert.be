@@ -20,7 +20,7 @@ pot copy-in \
 # Mount images folder
 pot mount-in \
     -p $POT_NAME \
-    -d "/root/data/jonaseveraert.be/images" \
+    -d "/images/home" \
     -m "/website/assets/images"
 
 # Copy init shell

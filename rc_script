@@ -8,6 +8,7 @@
 
 name=website
 rcvar=website_enable
+stop_cmd=website_stop
 
 load_rc_config $name
 
@@ -26,5 +27,10 @@ command_args="--change-dir \
   --title website \
   --syslog-tag website_daemon \
   /usr/local/bin/pot start website"
+
+website_stop() {
+  kill -9 "$(cat $pidfil)"
+  pot stop -p website
+}
 
 run_rc_command "$1"
