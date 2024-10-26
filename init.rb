@@ -57,7 +57,7 @@ pgconn = nil
 begin
   pgconn = PG.connect(dbname: "jonaseveraert.be", host: db_host, port: db_port, user: db_user, password: db_pass)
 rescue PG::ConnectionBad => e
-  ret = system "PGPASSWORD=#{db_pass} createdb -h #{db_host} -p #{db_port} -U #{db_user} jonaseveraert.be"
+  ret = system "PGPASSWORD=#{db_pass} /usr/local/bin/createdb -h #{db_host} -p #{db_port} -U #{db_user} jonaseveraert.be"
   if !ret
     abort("Couldn't create database")
   end
@@ -118,12 +118,22 @@ if version.nil?
 
   pgconn.exec <<-SQL
   insert into Metadata (Name, Value)
-  values ('DBVersion', '1.0.0')
+  values ('DBVersion', '1.0.0');
+  SQL
+end
+
+if SemVersion.new("1.0.1") > version
+  puts "Upgrading to 1.0.1"
+
+  pgconn.exec <<-SQL
+  alter type Category add value 'MusicShows';
+  SQL
+
+  pgconn.exec <<-SQL
+  update Metadata
+  set Value = '1.0.1'
+  where Name = 'DBVersion'
   SQL
 end
 
 puts "All done!"
-
-# if SemVersion.new("1.0.1") > version
-#   puts "yes"
-# end
