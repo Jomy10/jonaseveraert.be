@@ -1,10 +1,6 @@
 ---
 title = Photo gallery
-templating = true
-# head = <script src="https://unpkg.com/enter-view"></script>
-@preload_image_count = 4
----
-
+head <<EOF
 <style>
   :root {
     --grid-image-size: 10px;
@@ -27,7 +23,6 @@ templating = true
   .grid-image {
     width: 100%;
     transition-delay: 0.5s;
-    transition: transform 1.5s;
     opacity: 0;
     -webkit-transition: all 1.5s ease;
     -moz-transition: all 1.5s ease;
@@ -36,11 +31,21 @@ templating = true
     transition: all 1.5s ease;
   }
 </style>
+EOF
+---
+
+<%
+  preload_image_count = 4
+%>
+
+<!-- <%=
+  components.render("photo")
+%> -->
 
 <section id="photos" class="grid">
-  <% (1...((params["@preload_image_count"].to_i)+1)).each do |id| %>
+  <% (1...(preload_image_count+1)).each do |id| %>
     <div class="grid-item">
-      <img class="grid-image" src="<%= $site_url %>/image/gallery/<%= id %>" onload="this.style.opacity=1">
+      <img class="grid-image" src="<%= site_url %>/image/gallery/<%= id %>" onload="this.style.opacity=1">
     </div>
   <% end %>
 </section>
@@ -100,17 +105,17 @@ templating = true
     imgElement.className = "grid-image";
     imgElement.src = src;
     imgElement.onload = (_this) => { _this.target.style.opacity = 1 };
-    imgElement.onerror = (_this) => { _this.target.remove(); };
+    imgElement.onerror = (_this) => { _this.target.parentElement.remove(); };
     divElement.appendChild(imgElement);
     gridElement.appendChild(divElement);
 
     return imgElement;
   }
 
-  let imageCount = <%= params["@preload_image_count"] %>;
+  let imageCount = <%= preload_image_count %>;
   function fetchNextImage() {
     //let imgSrc = `https://picsum.photos/${Math.round(Math.random() * 1000)}/${Math.round(Math.random() * 1000)}`;
-    let imgSrc = `<%= $site_url %>/image/gallery/${++imageCount}`
+    let imgSrc = `<%= site_url %>/image/gallery/${++imageCount}`
     addImage(imgSrc);
   }
 
@@ -175,6 +180,4 @@ templating = true
     grid.setColumnCount(determineColCount(gridElement));
     grid.recalculate();
   });
-
-  // observeEndImages();
 </script>

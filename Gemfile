@@ -12,7 +12,9 @@ gem "ruby-filemagic"
 gem "pg"
 gem "sem_version"
 gem "rmagick"
-# gem "sqlite3"
-# gem "libkeycloak"
+gem "rufus-scheduler"
+gem "concurrent-ruby", require: "concurrent"
+gem 'concurrent-ruby-edge', require: 'concurrent-edge'
+gem 'concurrent-ruby-ext'
 
 # Dev dependencies

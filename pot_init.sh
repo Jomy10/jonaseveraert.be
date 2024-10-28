@@ -31,5 +31,7 @@ cd /website
 PGPASSWORD=$1 APP_ENV=production /usr/local/bin/ruby src/main.rb
 SH
 
+echo "APP_ENV=production" >> "/root/.shrc"
+
 pkg delete -y npm curl
 pkg clean -y

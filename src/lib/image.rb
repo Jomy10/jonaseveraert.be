@@ -57,9 +57,21 @@ def image_to_gallery_thumbnail(image, image_name)
     scaling = thumbnail_max_width.to_f / img_w.to_f
     image = image.resize(thumbnail_max_width, img_h * scaling)
   end
-  image.write(File.join(IMG_GALLERY_PATH, image_name + ext))
+  image.write(File.join(IMG_GALLERY_PATH, image_name + ext)) { |options|
+    options.quality = 50
+  }
 end
 
 def image_to_fullscreen(image, image_name)
-  # TODO
+  max_width = 1000
+  ext = ".webp"
+  img_w = image.columns
+  img_h = image.rows
+  if img_w > max_width
+    scaling = max_width.to_f / img_w.to_f
+    image = image.resize(max_width, img_h * scaling)
+  end
+  image.write(File.join(IMG_FULLSCREEN_PATH, image_name + ext)) { |options|
+    options.quality = 85
+  }
 end

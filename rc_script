@@ -29,7 +29,7 @@ command_args="--change-dir \
   /usr/local/bin/pot start website"
 
 website_stop() {
-  kill -9 "$(cat $pidfil)"
+  kill -2 "$(cat $pidfil)"
   pot stop -p website
 }
 

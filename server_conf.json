@@ -2,10 +2,12 @@
   "development": {
     "site_url": "http://localhost:8000",
     "port": 8000,
+    "ruby": "~/.rubies/ruby-3.2.2/bin/ruby",
     "dbname": "jonaseveraert.be"
   }, "production": {
     "site_url": "https://jonaseveraert.be",
     "port": 6000,
+    "ruby": "/usr/local/bin/ruby",
     "dbname": "jonaseveraert.be",
     "db_host": "localhost",
     "db_port": 5432,
