@@ -28,7 +28,7 @@ npm install
 cd /
 cat > start_server.sh <<SH
 cd /website
-PGPASSWORD=$1 APP_ENV=production /usr/local/bin/ruby src/main.rb
+PGPASSWORD=$1 APP_ENV=production /usr/local/bin/ruby src/app.rb
 SH
 
 echo "APP_ENV=production" >> "/root/.shrc"
