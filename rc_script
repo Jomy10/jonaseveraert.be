@@ -30,7 +30,7 @@ command_args="--change-dir \
 
 website_stop() {
   kill -2 "$(cat $pidfile)"
-  pot stop -p website
+  /usr/local/bin/pot stop -p website
 }
 
 run_rc_command "$1"
