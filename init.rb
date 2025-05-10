@@ -1,6 +1,7 @@
 require 'net/http'
 require 'pg'
 require 'sem_version'
+require 'json'
 
 puts "Initializing..."
 
@@ -12,19 +13,45 @@ Dir.mkdir("assets/images/fullscreen/") unless Dir.exist?("assets/images/fullscre
 # MIME TYPES #
 
 # The version in which to search for the MIME types configuration
-APACHE_VERSION = "2.4.9"
-MIME_FILE_LINK = "https://svn.apache.org/viewvc/httpd/httpd/tags/#{APACHE_VERSION}/docs/conf/mime.types?view=co"
+MIME_FILE_LINK = "https://raw.githubusercontent.com/patrickmccallum/mimetype-io/refs/heads/master/src/mimeData.json"
 
 uri = URI(MIME_FILE_LINK)
 res = Net::HTTP.get_response(uri)
+if res.code.to_i == 200
+  puts "Received mime types"
 
-table_entries = res.body.lines.filter { |l| !l.start_with? "#" }
+  entries = JSON.parse(res.body)
 
-csv_txt = table_entries.map do |line|
-  line.split(" ").join(",")
+  csv_out = ""
+  for entry in entries
+    mimetype = entry["name"]
+    extensions = entry["fileTypes"]
+
+    for extension in extensions
+      csv_out << mimetype
+      csv_out << ","
+      csv_out << extension[1...]
+      csv_out << "\n"
+    end
+  end
+
+  File.write("data/mime_types.csv", csv_out)
+else
+  puts "Couldn't get mime types (#{res.code.to_i})"
+
+  if !File.exist?("data/mime_types.csv")
+    throw new Error("mime_types.csv couldn't be created")
+  end
 end
 
-File.write("data/mime_types.csv", csv_txt.join("\n"))
+exit(0)
+
+# table_entries = res.body.lines.filter { |l| !l.start_with? "#" }
+
+# csv_txt = table_entries.map do |line|
+#   line.split(" ").join(",")
+# end
+
 
 # Image database #
 

@@ -16,6 +16,7 @@ GEM
     fugit (1.11.1)
       et-orbi (~> 1, >= 1.2.11)
       raabro (~> 1.4)
+    json (2.11.3)
     mustermann (3.0.2)
       ruby2_keywords (~> 0.0.1)
     nio4r (2.7.3)
@@ -67,6 +68,7 @@ DEPENDENCIES
   concurrent-ruby-ext
   csv
   erb
+  json
   pg
   puma
   rackup
