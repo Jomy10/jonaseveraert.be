@@ -2,7 +2,7 @@
   "development": {
     "site_url": "http://localhost:8000",
     "port": 8000,
-    "ruby": "~/.rubies/ruby-3.2.2/bin/ruby",
+    "ruby": "~/.rubies/3.4.1/bin/ruby",
     "dbname": "jonaseveraert.be"
   }, "production": {
     "site_url": "https://jonaseveraert.be",
