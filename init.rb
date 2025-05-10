@@ -44,8 +44,6 @@ else
   end
 end
 
-exit(0)
-
 # table_entries = res.body.lines.filter { |l| !l.start_with? "#" }
 
 # csv_txt = table_entries.map do |line|
