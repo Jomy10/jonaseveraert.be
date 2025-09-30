@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@astrojs/db": "^0.17.1",
+    "@astrojs/node": "^9.4.4",
     "@kor-ui/kor": "^1.11.3",
     "astro": "^5.13.3",
     "bcrypt": "^6.0.0",

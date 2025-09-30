@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# PROVIDE: website
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name=website
+rcvar=website_enable
+stop_cmd=website_stop
+
+load_rc_config $name
+
+: ${website_enable="YES"}
+: ${sites_home_dir:="/root/sites"}
+
+pidfile="/var/run/site_${name}.pid"
+procname=/usr/sbin/daemon
+# https://man.freebsd.org/cgi/man.cgi?query=daemon
+command=$procname
+command_args="--change-dir \
+  --sighup \
+  --output-file /var/log/website \
+  -P ${pidfile} \
+  --restart \
+  --title website \
+  --syslog-tag website_daemon \
+  /usr/local/bin/pot start website"
+
+website_stop() {
+  kill -2 "$(cat $pidfile)"
+  /usr/local/bin/pot stop -p website
+}
+
+run_rc_command "$1"
