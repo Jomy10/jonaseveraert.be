@@ -1,0 +1,158 @@
+---
+import { getLang } from "@lib/lang/langs";
+import "./Base.scss";
+import createLink from "@lib/lang/createLink";
+
+export interface Props {
+  title: string,
+  scroll: boolean
+};
+
+export const prerender = false;
+
+let lang = getLang(Astro.url.searchParams.get("lang"), Astro.request.headers.get("Accept-Language"));
+if (lang == null) {
+  console.warn("Language was undefined");
+  lang = "en";
+}
+console.log(lang);
+
+const props = Astro.props;
+
+const menu_items = [
+  {
+    name: {
+      en: "Photo gallery",
+      nl: "Fotogalerij"
+    }[lang],
+    link: createLink("/photo-gallery", lang)
+  },
+  {
+    name: {
+      en: "Other projects",
+      nl: "Andere projecten"
+    }[lang],
+    link: createLink("/other-projects", lang)
+  }
+];
+
+---
+
+<!DOCTYPE html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{props.title}</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <script is:inline type="text/javascript" charset="utf-8" src="/node_modules/@kor-ui/kor/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="/node_modules/@kor-ui/kor/kor-styles.css"/>
+  </head>
+  <body>
+    <kor-page flex-direction="column">
+      <!-- Mobile nav -->
+      <kor-app-bar
+        class="mobile-nav-bar clickable"
+        id="mobile-nav-bar"
+        slot="top"
+        mobile
+        label="Jonas Everaert"
+      >
+        <kor-icon icon="more_vert" slot="right" onclick="document.querySelector('#mobile-nav-more').visible = true"></kor-icon>
+      </kor-app-bar>
+      <div class="mobile-nav">
+        <kor-drawer id="mobile-nav-more" label="Menu" position="right" flex-direction="column" class="clickable">
+          {
+            menu_items.map((item) => {
+              return (<kor-menu-item label={item.name} toggle="false" onclick={`window.open('${item.link}', '_self')`}></kor-menu-item>);
+            })
+          }
+        </kor-drawer>
+      </div>
+
+      <!-- Desktop nav -->
+      <div class="desktop-nav">
+        <kor-app-bar
+          class="clickable"
+          id="desktop-nav-bar"
+          label="Jonas Everaert"
+        >
+          {
+            menu_items.map((item) => {
+              return (<kor-menu-item label={item.name} toggle="false" onclick={`window.open('${item.link}', '_self')`}></kor-menu-item>);
+            }).reduce((acc, item) => [...acc, item, <kor-divider spacing="m" orientation="vertical"></kor-divider>], [])
+          }
+          <kor-icon button icon="language" slot="functions" size="m" class="language-toggle"></kor-icon>
+          <kor-icon button icon="brightness_medium" slot="functions" size="m" class="theme-toggle"></kor-icon>
+        </kor-app-bar>
+      </div>
+
+      <div id="content" class={props.scroll ? "scroll-view" : ""}>
+        <slot />
+      </div>
+    </kor-page>
+
+    <script>
+      import { type Language, getCurrentLanguage, isValidLanguage } from "@lib/lang/langs";
+      import Cookies from "@lib/cookies";
+
+      // Theme
+      let htmlRoot = document.querySelector("html")!;
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+        htmlRoot.setAttribute("theme", "dark");
+      else
+        htmlRoot.setAttribute("theme", "light");
+
+      // Navigation home
+      const searchParams = new URLSearchParams(window.location.search);
+      const navHomeLink = `/?${searchParams.toString()}`;
+
+      const mobileNavHome = document.querySelector("#mobile-nav-bar")!.shadowRoot!.children[1] as HTMLElement;
+      mobileNavHome.onclick = () => window.open(navHomeLink, "_self");
+
+      const desktopNavHome = document.querySelector("#desktop-nav-bar")!.shadowRoot!.children[0] as HTMLElement;
+      desktopNavHome.onclick = () => window.open(navHomeLink, "_self");
+
+      // Theme toggle
+      function toggleTheme() {
+        switch (htmlRoot.getAttribute("theme")) {
+          case "dark":
+            htmlRoot.setAttribute("theme", "light");
+            break;
+          case "light":
+            htmlRoot.setAttribute("theme", "dark");
+            break;
+          default:
+            htmlRoot.setAttribute("theme", "light");
+        }
+      }
+
+      const themeToggle = document.querySelector(".theme-toggle")! as HTMLElement;
+      themeToggle.onclick = toggleTheme;
+
+      function toggleLanguage() {
+        const currentLang = getCurrentLanguage();
+        setLanguage(currentLang === "en" ? "nl" : "en");
+      }
+
+      function setLanguage(language: Language) {
+        const searchParameters = new URLSearchParams(window.location.search);
+        searchParameters.set("lang", language);
+        window.location.search = searchParameters.toString();
+      }
+
+      const languageToggle = document.querySelector(".language-toggle")! as HTMLElement;
+      languageToggle.onclick = toggleLanguage;
+
+      if (getCurrentLanguage() != htmlRoot.lang) {
+        console.warn(getCurrentLanguage(), "does not equal", htmlRoot.lang);
+        // if (isValidLanguage(htmlRoot.lang))
+        //   setLanguage(htmlRoot.lang as Language)
+      }
+
+      Cookies.setCookie("lang", htmlRoot.lang || getCurrentLanguage());
+      document.cookie = `lang=${htmlRoot.lang || getCurrentLanguage()}`;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,245 @@
+---
+import Base from "@layouts/Base.astro";
+// import { GET as getImageFromId } from "../image/gallery/[id].webp";
+
+export const prerender = false;
+
+// TODO: deleting images is quirky
+---
+
+<Base title="Afbeeldingen beheren" scroll={true}>
+  <!-- Adding image -->
+  <style>
+    .section {
+      padding: 1rem;
+    }
+
+    .form > * {
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+
+    .validation {
+      color: var(--functional-red);
+    }
+
+    .validation:empty {
+      display: none;
+    }
+  </style>
+
+  <section id="add-image" class="section">
+    <div class="form">
+      <kor-text size="header-1">Afbeelding toevoegen</kor-text>
+      <input type="file" id="file-input" accept="image/*"></input>
+      <kor-text id="validation" class="validation" size="body-1"></kor-text>
+      <kor-button label="Toevoegen" id="submit-button"></kor-button>
+    </div>
+  </section>
+
+  <script>
+    const fileInput = document.querySelector("#file-input")! as HTMLInputElement;
+    const validationElement = document.querySelector("#validation")! as HTMLInputElement;
+    const submitButton = document.querySelector("#submit-button")!;
+    submitButton.addEventListener("click", async (_) => {
+       const file = fileInput.files![0];
+       const fileData = await file.bytes();
+
+       console.log("uploading file...");
+       const result = await fetch("/admin/api/add-image", {
+         method: "POST",
+         body: fileData,
+         headers: {
+           "Content-Type": file.type,
+           "file-name": file.name,
+           "file-last-modified": new Date(file.lastModified).toDateString()
+         }
+       });
+       console.log("upload finished.", result.status, result.statusText);
+
+       if (result.status != 200) {
+         validationElement.innerText = result.statusText;
+       } else {
+         validationElement.innerText = "";
+       }
+    });
+  </script>
+
+  <!-- Deleting image -->
+  <style is:inline>
+    .manage-img {
+      width: calc(25% - 2rem);
+      margin: 1rem;
+      cursor: pointer;
+    }
+  </style>
+
+  <kor-notifications position="top-right" id="notifications">
+  </kor-notifications>
+
+  <section id="delete-image">
+    {
+      [...new Array(9).keys()].map((imageId) => {
+        return <img src={`/image/gallery/${imageId}.webp`} class="manage-img" data-id={imageId} id={`image-${imageId}`}></img>
+      })
+    }
+    {
+      [...new Array(9).keys()].map((imageId) => {
+        return <kor-popover target={`#image-${imageId}`} position="top" label="Foto verwijderen?" id={`popover-${imageId}`}>
+          <img src=`/image/gallery/${imageId}.webp` id={`popover-img-${imageId}`}></img>
+          <kor-button label="Verwijderen" id={`delete-img-${imageId}`} class="delete-img" data-id={imageId}></kor-button>
+        </kor-popover>
+      })
+    }
+  </section>
+
+  <script>
+    function handleClick(e: Event) {
+      const imgId = (e.target! as HTMLElement).dataset.id;
+      // const popover = document.querySelector(`#popover-${imgId}`)! as HTMLElement;
+      const popoverImage = document.querySelector(`#popover-img-${imgId}`)! as HTMLImageElement;
+
+      // popover.target = `#image-${imgId}`;
+      popoverImage.src = `/image/gallery/${imgId}.webp`;
+    }
+
+    const notifications = document.querySelector("#notifications")! as HTMLElement;
+
+    async function handleDelete(e: Event) {
+      const imageSequenceId = (e.target! as HTMLElement).dataset.id;
+
+      const getResult = await fetch("/admin/api/query-image", {
+        method: "POST",
+        body: JSON.stringify({
+          "sequenceId": imageSequenceId
+        }),
+        headers: {
+          "Content-Type": "text/json"
+        }
+      });
+
+      const getBody = JSON.parse(new TextDecoder().decode((await getResult.body?.getReader().read())?.value));
+      const imageId = parseInt(getBody.images[0].Id);
+      console.log("Image ID is", imageId);
+      if (isNaN(imageId)) {
+        console.log("!");
+        const notification = document.createElement("kor-notification-item");
+        notification.id = "top-right";
+        // @ts-ignore
+        notification.label = "Fout bij verwijderen";
+        notification.innerText = "Image ID is " + imageId;
+        // @ts-ignore
+        notification.visible = true;
+
+        console.log(notifications);
+        notifications.appendChild(notification);
+        return;
+      }
+
+      let result: Response;
+      try {
+        result = await fetch("/admin/api/delete-image", {
+          method: "DELETE",
+          body: JSON.stringify({
+            "id": imageId
+          }),
+          headers: {
+            "Content-Type": "text/json",
+          }
+        });
+      } catch (error) {
+        result = error as Response;
+      }
+
+      if (result.status != 200) {
+        console.error(result);
+
+        const notification = document.createElement("kor-notification-item");
+        notification.id = "top-right";
+        // @ts-ignore
+        notification.label = "Fout bij verwijderen";
+        notification.innerText = result.statusText;
+        // @ts-ignore
+        notification.visible = true;
+
+        notifications.appendChild(notification);
+      } else {
+        console.log(result);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        populate();
+        updateImages();
+      }
+    }
+
+    function updateImages() {
+      const images = document.querySelectorAll(".manage-img")!;
+
+      images.forEach(img => {
+        img.removeEventListener("click", handleClick);
+        img.addEventListener("click", handleClick);
+      });
+
+      const deleteButtons = document.querySelectorAll(".delete-img")!;
+
+      deleteButtons.forEach(img => {
+        img.removeEventListener("click", handleDelete);
+        img.addEventListener("click", handleDelete);
+      });
+    }
+
+    const imageContainer = document.querySelector("#delete-image")!;
+    const submitButton = document.querySelector("#submit-button")!;
+
+    async function populate() {
+      const imagesPromises = [...new Array(9).keys()].map(async (imageId) => {
+        const img = document.createElement("img") as HTMLImageElement;
+        const imageBody = await fetch(`/image/gallery/${imageId}.webp`);
+        const imageData = (await imageBody.body?.getReader().read())?.value;
+        // img.src = `/image/gallery/${imageId}.webp`;
+        img.src = `data:image/webp;base64,` + imageData!.toBase64();
+        console.log("populated image with src", img.src);
+        img.classList.add("manage-img");
+        img.dataset.id = `${imageId}`;
+        img.id = `image-${imageId}`;
+        return img;
+      });
+
+      const images = await Promise.all(imagesPromises);
+
+      const popovers = [...new Array(9).keys()].map((imageId) => {
+        const popover = document.createElement("kor-popover");
+        // @ts-ignore
+        popover.target = `image-${imageId}`;
+        // @ts-ignore
+        popover.position = "top";
+        // @ts-ignore
+        popover.label = "Foto verwijderen";
+        popover.id = `popover-${imageId}`;
+
+        const img = document.createElement("img") as HTMLImageElement;
+        img.src = `/image/gallery/${imageId}.webp`;
+        img.id = `popover-img-${imageId}`;
+        popover.appendChild(img);
+
+        const button = document.createElement("kor-button");
+        // @ts-ignore
+        button.label = "Verwijderen";
+        button.id = `delete-img-${imageId}`;
+        button.dataset.id = `${imageId}`;
+        popover.appendChild(button);
+
+        return popover;
+      });
+
+      imageContainer.replaceChildren(...images, ...popovers);
+      console.log(imageContainer.children);
+    }
+
+    updateImages();
+
+    submitButton.addEventListener("click", (e) => {
+      populate();
+      updateImages();
+    });
+  </script>
+</Base>

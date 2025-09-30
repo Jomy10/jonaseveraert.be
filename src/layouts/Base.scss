@@ -1,0 +1,39 @@
+// Nav bars //
+
+.desktop-nav {
+  display: contents;
+}
+
+.mobile-nav-bar {
+  display: none;
+}
+.mobile-nav {
+  display: none;
+}
+
+@media only screen and (max-width: 600px) {
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-nav-bar {
+    display: flex;
+  }
+  .mobile-nav {
+    display: contents;
+  }
+}
+
+/* .body-spacing {
+  margin-top: 1.5rem;
+} */
+
+.scroll-view {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+.clickable {
+  cursor: pointer;
+}
