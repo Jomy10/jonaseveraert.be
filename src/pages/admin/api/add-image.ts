@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
-import { db, eq, Image } from "astro:db";
+import { eq } from "drizzle-orm";
+import { db } from "@db/index";
+import { Image } from "@db/schema";
 import fs from "node:fs";
 import sharp from "sharp";
 

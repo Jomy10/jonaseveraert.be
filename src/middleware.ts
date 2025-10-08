@@ -1,5 +1,8 @@
 import { defineMiddleware } from "astro/middleware";
-import { db, eq, User } from "astro:db";
+// import { db, eq, User } from "astro:db";
+import { eq } from 'drizzle-orm';
+import { db } from "@db/index";
+import { User } from "@db/schema";
 import bcrypt from "bcrypt";
 
 const PROTECTED_ROUTES = [
@@ -19,7 +22,7 @@ async function validateCredentials(username: string, password: string): Promise<
     return true;
   } else {
     const passwordResult = await db.select({
-      password: User.password
+      password: User.PassWord
     }).from(User)
       .where(eq(User.UserName, username));
 

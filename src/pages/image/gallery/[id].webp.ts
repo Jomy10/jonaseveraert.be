@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
-import { db, Image, desc } from "astro:db";
+import { desc } from "drizzle-orm";
+import { db } from "@db/index";
+import { Image } from "@db/schema";
 import fs from "node:fs";
 
 export const prerender = false;

@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
-import { db, eq, desc, Image } from "astro:db";
+import { eq, desc } from "drizzle-orm";
+import { db } from "@db/index";
+import { Image } from "@db/schema";
 
 export const POST: APIRoute = async ({ request }) => {
   console.log(request);
@@ -16,14 +18,12 @@ export const POST: APIRoute = async ({ request }) => {
   // The sequence id of the image, sorted by created date
   const sequenceId: number | undefined = body.sequenceId;
 
-  let query = db.select().from(Image)
+  let query: any = db.select().from(Image)
 
   if (searchText != undefined)
-    // @ts-ignore
     query = query.where(eq(Image.FileName, searchText));
 
   if (sequenceId != undefined)
-    // @ts-ignore
     query = query
       .orderBy(desc(Image.CreatedDate))
       .offset(sequenceId)

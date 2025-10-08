@@ -9,15 +9,17 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/db": "^0.17.2",
+    "-": "^0.0.1",
     "@astrojs/node": "^9.4.4",
     "@kor-ui/kor": "^1.11.3",
     "astro": "^5.14.1",
     "bcrypt": "^6.0.0",
+    "drizzle-orm": "^0.44.6",
     "pg": "^8.16.3",
     "sharp": "^0.34.4"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.31.5",
     "sass": "^1.93.2"
   }
 }

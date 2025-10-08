@@ -1,0 +1,107 @@
+{
+  "id": "9a59630c-ee98-45d3-b272-a0a3a45e9d78",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.Image": {
+      "name": "Image",
+      "schema": "",
+      "columns": {
+        "Id": {
+          "name": "Id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "FileName": {
+          "name": "FileName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "CreatedDate": {
+          "name": "CreatedDate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "Image_date_index": {
+          "name": "Image_date_index",
+          "columns": [
+            {
+              "expression": "CreatedDate",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Image_FileName_unique": {
+          "name": "Image_FileName_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "FileName"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.User": {
+      "name": "User",
+      "schema": "",
+      "columns": {
+        "UserName": {
+          "name": "UserName",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "PassWord": {
+          "name": "PassWord",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "CreatedDate": {
+          "name": "CreatedDate",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
