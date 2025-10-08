@@ -55,7 +55,7 @@ const menu_items = [
     <kor-page flex-direction="column">
       <!-- Mobile nav -->
       <kor-app-bar
-        class="mobile-nav-bar clickable"
+        class="mobile-nav-bar"
         id="mobile-nav-bar"
         slot="top"
         mobile
@@ -76,7 +76,6 @@ const menu_items = [
       <!-- Desktop nav -->
       <div class="desktop-nav">
         <kor-app-bar
-          class="clickable"
           id="desktop-nav-bar"
           label="Jonas Everaert"
         >
@@ -99,7 +98,8 @@ const menu_items = [
       import { type Language, getCurrentLanguage, isValidLanguage } from "@lib/lang/langs";
       import Cookies from "@lib/cookies";
 
-      document.addEventListener("load", () => {
+      window.addEventListener("load", () => {
+        console.log("Loaded");
         // Theme
         let htmlRoot = document.querySelector("html")!;
         if (window.matchMedia("(prefers-color-scheme: dark)").matches)
@@ -111,11 +111,13 @@ const menu_items = [
         const searchParams = new URLSearchParams(window.location.search);
         const navHomeLink = `/?${searchParams.toString()}`;
 
-        const mobileNavHome = document.querySelector("#mobile-nav-bar")!.shadowRoot!.children[1] as HTMLElement;
+        const mobileNavHome = document.querySelector("#mobile-nav-bar")!.shadowRoot!.querySelector(".label")! as HTMLElement;
         mobileNavHome.onclick = () => window.open(navHomeLink, "_self");
+        mobileNavHome.style.cursor = "pointer";
 
-        const desktopNavHome = document.querySelector("#desktop-nav-bar")!.shadowRoot!.children[0] as HTMLElement;
+        const desktopNavHome = document.querySelector("#desktop-nav-bar")!.shadowRoot!.querySelector(".label")! as HTMLElement//.children[0] as HTMLElement;
         desktopNavHome.onclick = () => window.open(navHomeLink, "_self");
+        desktopNavHome.style.cursor = "pointer";
 
         // Theme toggle
         function toggleTheme() {
