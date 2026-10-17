@@ -20,7 +20,7 @@ website_start() {
     /usr/sbin/daemon -f \
         -o "/var/log/${name}.log" \
         -p "${pidfile}" \
-        /usr/local/bin/bun --env /usr/local/etc/website.env /website/dist/server/entry.mjs
+        /usr/local/bin/bun --env-file /usr/local/etc/website.env /website/dist/server/entry.mjs
 }
 
 website_stop() {
