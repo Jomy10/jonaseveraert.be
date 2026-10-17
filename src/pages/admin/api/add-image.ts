@@ -5,6 +5,8 @@ import { Image } from "@db/schema";
 import fs from "node:fs";
 import sharp from "sharp";
 
+console.log("supported formats:", sharp.format.jxl);
+
 export const POST: APIRoute = async ({ request }) => {
   console.log(request);
 
@@ -15,6 +17,8 @@ export const POST: APIRoute = async ({ request }) => {
   if (fileName == null)
     return new Response(null, { status: 400, statusText: "`file-name` header was not provided" });
 
+  const extension = fileName.split(".").pop()!;
+
   const filePath = imgFolder + "/original/" + fileName;
   const galleryFilePath = imgFolder + "/gallery/" + fileName;
 
@@ -24,6 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
   const existsResult = await db.select().from(Image)
     .where(eq(Image.FileName, fileName));
 
+  // TODO: rename file
   if (existsResult.length > 0)
     return new Response(null, { status: 400, statusText: "A file with filename " + fileName + " already exists" });
 
@@ -70,5 +75,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   console.log("Finished");
 
-  return new Response(JSON.stringify({ rowid: res.lastInsertRowid!.toString() }), { status: 200 });
+  console.log(res);
+
+  return new Response(null, { status: 200 });
 };

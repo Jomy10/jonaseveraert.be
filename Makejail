@@ -1,0 +1,38 @@
+OPTION overwrite=force
+
+MOUNT /compat/linux/proc /compat/linux/proc
+
+ARG postgres_user=postgres
+ARG postgres_password
+ARG postgres_address=127.0.0.1
+ARG postgres_port=5432
+ARG postgres_db=website
+ARG image_folder
+ARG port=8000
+ARG host=127.0.0.1
+
+START
+
+PKG wget unzip python3 gmake vips
+
+CMD wget https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-freebsd-x64-baseline.zip
+CMD ls
+CMD file bun-freebsd-x64-baseline.zip
+CMD unzip bun-freebsd-x64-baseline.zip
+CMD mv bun-freebsd-x64-baseline/bun /usr/local/bin/bun
+
+COPY . /website
+
+CMD ls
+CMD cd /website && bun i
+CMD ASTRO_DB_REMOTE_URL="libsql://${postgres_user}:${postgres_password}@${postgres_address}:${postgres_port}/${postgres_db}" JONASEVERAERT_BE_IMAGE_FOLDER="${image_folder}" cd /website && \
+    bun run build --port "${port}" --host "${host}" --remote
+
+CMD echo "DATABASE_URL='postgresql://${postgres_user}:${postgres_password}@${postgres_address}:${postgres_port}/${postgres_db}'" > /usr/local/etc/website.env
+
+RUN mkdir -p /usr/local/etc/rc.d/
+COPY --verbose service /usr/local/etc/rc.d/website
+RUN chmod 555 /usr/local/etc/rc.d/website
+SYSRC website_enable=YES
+
+STOP

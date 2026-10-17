@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# rc script for website
+
+# PROVIDE: website
+# REQUIRE: NETWORKING
+# REQUIRE: shutdown
+
+. /etc/rc.subr
+
+name="website"
+rcvar="website_enable"
+pidfile="/var/run/${name}.pid"
+procname=/usr/sbin/daemon
+
+start_cmd="${name}_start"
+stop_cmd="${name}_stop"
+
+website_start() {
+    /usr/sbin/daemon -f \
+        -o "/var/log/${name}.log" \
+        -p "${pidfile}" \
+        /usr/local/bin/bun --env /usr/local/etc/website.env /website/dist/server/entry.mjs
+}
+
+website_stop() {
+    if [ -f "${pidfile}" ]; then
+        kill "$(cat "${pidfile}")"
+        rm -f "${pidfile}"
+    fi
+}
+
+load_rc_config $name
+run_rc_command "$1"
