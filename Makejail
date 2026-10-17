@@ -16,18 +16,17 @@ START
 PKG wget unzip python3 gmake vips
 
 CMD wget https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-freebsd-x64-baseline.zip
-CMD ls
-CMD file bun-freebsd-x64-baseline.zip
 CMD unzip bun-freebsd-x64-baseline.zip
 CMD mv bun-freebsd-x64-baseline/bun /usr/local/bin/bun
 
 COPY . /website
 
-CMD ls
 CMD cd /website && bun i
 # Migrate database and build server
-CMD DATABASE_URL="postgresql://${postgres_user}:${postgres_password}@${postgres_address}:${postgres_port}/${postgres_db}" JONASEVERAERT_BE_IMAGE_FOLDER="${image_folder}" \
+CMD export DATABASE_URL="postgresql://${postgres_user}:${postgres_password}@${postgres_address}:${postgres_port}/${postgres_db}" JONASEVERAERT_BE_IMAGE_FOLDER="${image_folder}" && \
     cd /website && \
+    bun install && \
+    bun pm trust --all && \
     bun x drizzle-kit push && \
     bun run build --port "${port}" --host "${host}" --remote
 
