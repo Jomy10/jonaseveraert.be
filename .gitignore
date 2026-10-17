@@ -26,3 +26,5 @@ pnpm-debug.log*
 
 data/
 db/database.db
+
+.env

@@ -1,12 +1,8 @@
 ## Updating the database
 
 ```
-ASTRO_DB_REMOTE_URL="..." bun astro db push
-ASTRO_DB_REMOTE_URL="..." bun astro db verify
+DATABASE_URL="..." bunx drizzle-kit push
 ```
-
-where `ASTRO_DB_REMOTE_URL` is a url to the databse. (e.g. for local development:
-"file:./db/database.db")
 
 ## Authentication
 
