@@ -26,8 +26,9 @@ COPY . /website
 CMD ls
 CMD cd /website && bun i
 # Migrate database and build server
-CMD JONASEVERAERT_BE_IMAGE_FOLDER="${image_folder}" cd /website && \
-    bunx drizzle-kit push && \
+CMD DATABASE_URL="postgresql://${postgres_user}:${postgres_password}@${postgres_address}:${postgres_port}/${postgres_db}" JONASEVERAERT_BE_IMAGE_FOLDER="${image_folder}" \
+    cd /website && \
+    bun x drizzle-kit push && \
     bun run build --port "${port}" --host "${host}" --remote
 
 CMD echo "DATABASE_URL='postgresql://${postgres_user}:${postgres_password}@${postgres_address}:${postgres_port}/${postgres_db}'" > /usr/local/etc/website.env
