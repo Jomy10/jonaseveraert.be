@@ -13,7 +13,7 @@ ARG host=127.0.0.1
 
 START
 
-PKG wget unzip python3 gmake vips
+PKG wget unzip python3 gmake vips pkgconf
 
 CMD wget https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-freebsd-x64-baseline.zip
 CMD unzip bun-freebsd-x64-baseline.zip
@@ -21,8 +21,22 @@ CMD mv bun-freebsd-x64-baseline/bun /usr/local/bin/bun
 
 COPY . /website
 
-CMD cd /website && bun i
 # Migrate database and build server
+
+CMD cd /website && \
+    bun install && \
+    bun pm trust --all
+
+CMD cd /website/node_modules/sharp/src && \
+    env \
+        PKG_CONFIG_PATH=/usr/local/lib/pkgconfig \
+        SHARP_FORCE_GLOBAL_LIBVIPS=1 \
+        CXX=clang++ \
+        CXXFLAGS="-std=c++17" \
+        CPPFLAGS="-I/usr/local/include/glib-2.0 -I/usr/local/lib/glib-2.0/include -I/usr/local/include" \
+        LDFLAGS="-L/usr/local/lib -lvips -lvips-cpp" \
+        bun x node-gyp rebuild
+
 CMD export DATABASE_URL="postgresql://${postgres_user}:${postgres_password}@${postgres_address}:${postgres_port}/${postgres_db}" JONASEVERAERT_BE_IMAGE_FOLDER="${image_folder}" && \
     cd /website && \
     bun install && \

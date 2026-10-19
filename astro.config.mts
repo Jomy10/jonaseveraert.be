@@ -14,4 +14,12 @@ export default defineConfig({
     }),
 
     integrations: [solidJs()],
+
+    build: {
+      rollupOptions: {
+        external: [
+          "sharp"
+        ]
+      }
+    }
 });

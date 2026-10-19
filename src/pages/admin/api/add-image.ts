@@ -35,11 +35,17 @@ async function handleRequest(request: Request): Promise<Response> {
 
     console.log(`Writing original file to ${filePath}...`);
     const imageDataBuffer = await imageData.arrayBuffer();
-    const ogFileBytesWritten = Bun.write(filePath, imageDataBuffer);
+    await Bun.write(filePath, imageDataBuffer);
 
     try {
         console.log("Transforming file...")
-        const sharpBuffer = await sharp(imageDataBuffer)
+        const buffer = Buffer.from(imageDataBuffer);
+        console.debug("Sharp versions:", sharp.versions);
+
+        const metadata = await sharp(buffer).metadata();
+        console.log("Metadata:", metadata);
+
+        const sharpBuffer = await sharp(buffer)
             .resize(400)
             .webp({ quality: 40 })
             .toBuffer();
@@ -48,14 +54,11 @@ async function handleRequest(request: Request): Promise<Response> {
         await Bun.write(galleryFilePath, sharpBuffer);
     } catch (e: any) {
         console.error(e);
-        await ogFileBytesWritten;
         const ogFile = Bun.file(filePath);
         ogFile.delete();
 
         return new Response(undefined, { status: StatusCodes.INTERNAL_SERVER_ERROR, statusText: "Something unexpected happened while transforming the iamge, consult the server logs" });
     }
-
-    await ogFileBytesWritten;
 
     console.debug("Adding image entry...");
     const res = await db.insert(Image).values({
