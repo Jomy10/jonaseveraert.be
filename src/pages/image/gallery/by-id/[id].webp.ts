@@ -7,6 +7,15 @@ import { StatusCodes } from "http-status-codes";
 export const prerender = false;
 
 export const GET: APIRoute = async ({ params }) => {
+    try {
+        return await handleRequest(params);
+    } catch (e: any) {
+        console.error(e);
+        return new Response(undefined, { status: StatusCodes.INTERNAL_SERVER_ERROR });
+    }
+};
+
+async function handleRequest(params: Record<string, string | undefined>): Promise<Response> {
     const id = parseInt(params.id!);
     const imgFolder = import.meta.env["JONASEVERAERT_BE_IMAGE_FOLDER"] ?? "./data/img";
 
@@ -33,4 +42,4 @@ export const GET: APIRoute = async ({ params }) => {
             }
         }
     )
-};
+}

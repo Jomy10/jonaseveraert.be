@@ -8,6 +8,15 @@ export const prerender = false;
 
 // Get the gallery image data for an image by filename
 export const GET: APIRoute = async ({ params }) => {
+    try {
+        return await handleRequest(params);
+    } catch (e: any) {
+        console.error(e);
+        return new Response(undefined, { status: StatusCodes.INTERNAL_SERVER_ERROR });
+    }
+};
+
+async function handleRequest(params: Record<string, string | undefined>): Promise<Response> {
     const fileName = params.fileName;
     const imgFolder = import.meta.env["JONASEVERAERT_BE_IMAGE_FOLDER"] ?? "./data/img";
 
@@ -33,4 +42,4 @@ export const GET: APIRoute = async ({ params }) => {
             }
         }
     )
-};
+}

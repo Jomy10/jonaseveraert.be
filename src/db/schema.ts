@@ -1,7 +1,7 @@
 import {
     pgTable,
     serial, text, date, integer,
-    index
+    uniqueIndex
 } from "node_modules/drizzle-orm/pg-core";
 
 export const Image = pgTable("Image", {
@@ -11,7 +11,7 @@ export const Image = pgTable("Image", {
     GalleryOrder: integer().generatedByDefaultAsIdentity().notNull().unique(),
     CreatedDate: date().defaultNow().notNull(),
 }, (table) => [
-    index("Image_date_index").on(table.CreatedDate),
+    uniqueIndex("Image_order_index").on(table.GalleryOrder.desc()),
 ]);
 
 export type ImageSchema = {

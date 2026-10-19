@@ -11,6 +11,7 @@ export const POST: APIRoute = async ({ request }) => {
     try {
         return await handleRequest(request);
     } catch (e: any) {
+        console.error(e);
         return new Response(undefined, { status: StatusCodes.INTERNAL_SERVER_ERROR, statusText: "Internal server error" });
     }
 }
