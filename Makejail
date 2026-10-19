@@ -13,9 +13,9 @@ ARG host=127.0.0.1
 
 START
 
-PKG wget unzip python3 gmake vips pkgconf
+PKG unzip python3 gmake vips pkgconf
 
-CMD wget https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-freebsd-x64-baseline.zip
+CMD fetch https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-freebsd-x64-baseline.zip
 CMD unzip bun-freebsd-x64-baseline.zip
 CMD mv bun-freebsd-x64-baseline/bun /usr/local/bin/bun
 

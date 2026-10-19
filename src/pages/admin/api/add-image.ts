@@ -40,10 +40,6 @@ async function handleRequest(request: Request): Promise<Response> {
     try {
         console.log("Transforming file...")
         const buffer = Buffer.from(imageDataBuffer);
-        console.debug("Sharp versions:", sharp.versions);
-
-        const metadata = await sharp(buffer).metadata();
-        console.log("Metadata:", metadata);
 
         const sharpBuffer = await sharp(buffer)
             .resize(400)

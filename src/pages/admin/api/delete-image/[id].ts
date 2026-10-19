@@ -39,7 +39,7 @@ async function handleRequest(params: Record<string, string | undefined>): Promis
         await file.delete();
 
         const galleryFile = Bun.file(galleryFilePath);
-        await file.delete();
+        await galleryFile.delete();
     } else {
         console.log(`Would remove ${filePath}`);
         console.log(`Would remove ${galleryFilePath}`);
