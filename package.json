@@ -14,7 +14,8 @@
     "@astrojs/solid-js": "^7.1.0",
     "@kor-ui/kor": "^1.11.3",
     "@types/bun": "^1.4.3",
-    "astro": "7.4.0",
+    "astro": "6.3", // https://github.com/withastro/astro/issues/18446
+    // "astro": "7.4.0",
     "bcrypt": "^6.0.0",
     "drizzle-orm": "^0.45.4",
     "http-status-codes": "^2.3.0",
