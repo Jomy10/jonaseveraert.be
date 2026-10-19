@@ -3,16 +3,19 @@ import { defineConfig } from "astro/config";
 
 import node from "@astrojs/node";
 import solidJs from "@astrojs/solid-js";
-// import db from "@astrojs/db";
+import { unified } from "@astrojs/markdown-remark";
 
 // https://astro.build/config
 export default defineConfig({
-  output: "server",
+    output: "server",
 
-  // integrations: [db()],
-  adapter: node({
-    mode: "standalone"
-  }),
+    adapter: node({
+        mode: "standalone"
+    }),
 
-  integrations: [solidJs()],
+    markdown: {
+      processor: unified()
+    },
+
+    integrations: [solidJs()],
 });

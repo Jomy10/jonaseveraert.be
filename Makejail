@@ -28,7 +28,7 @@ CMD export DATABASE_URL="postgresql://${postgres_user}:${postgres_password}@${po
     bun install && \
     bun pm trust --all && \
     bun x drizzle-kit push && \
-    bun run build --port "${port}" --host "${host}" --remote
+    bun run --bun astro build --port "${port}" --host "${host}" --remote
 
 CMD echo "DATABASE_URL='postgresql://${postgres_user}:${postgres_password}@${postgres_address}:${postgres_port}/${postgres_db}'" > /usr/local/etc/website.env
 

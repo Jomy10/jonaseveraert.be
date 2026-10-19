@@ -1,3 +1,9 @@
+## Build
+
+```sh
+bun --env-file=.env run --bun astro build
+```
+
 ## Dev server
 
 ```sh
