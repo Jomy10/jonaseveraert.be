@@ -1,81 +1,73 @@
 import type { APIRoute } from "astro";
-import { eq } from "drizzle-orm";
 import { db } from "@db/index";
 import { Image } from "@db/schema";
-import fs from "node:fs";
 import sharp from "sharp";
+import { StatusCodes } from "http-status-codes";
+import { randomUUIDv7 } from "bun";
 
-console.log("supported formats:", sharp.format.jxl);
+export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
-  console.log(request);
-
-  const imgFolder = import.meta.env["JONASEVERAERT_BE_IMAGE_FOLDER"] ?? "./data/img";
-
-  const imageData = await request.blob();
-  const fileName = request.headers.get("file-name");
-  if (fileName == null)
-    return new Response(null, { status: 400, statusText: "`file-name` header was not provided" });
-
-  const extension = fileName.split(".").pop()!;
-
-  const filePath = imgFolder + "/original/" + fileName;
-  const galleryFilePath = imgFolder + "/gallery/" + fileName;
-
-  console.log(filePath, galleryFilePath);
-
-  // if (fs.existsSync(filePath))
-  const existsResult = await db.select().from(Image)
-    .where(eq(Image.FileName, fileName));
-
-  // TODO: rename file
-  if (existsResult.length > 0)
-    return new Response(null, { status: 400, statusText: "A file with filename " + fileName + " already exists" });
-
-  // Write original file
-  console.log("Writing original file...");
-  const imageDataBuffer = await imageData.arrayBuffer()
-  const ogFileWriteResult = new Promise((resolve, reject) => fs.writeFile(filePath, Buffer.from(imageDataBuffer), err => {
-    if (err) {
-      console.error(err);
-      reject(err);
-    } else {
-      console.log("Original file written");
-      resolve(null);
+    try {
+        return await handleRequest(request);
+    } catch (e: any) {
+        return new Response(undefined, { status: StatusCodes.INTERNAL_SERVER_ERROR, statusText: "Internal server error" });
     }
-  }));
+}
 
-  // Write webp file
-  try {
-    console.log("Transforming file...");
-    const sharpBuffer = await sharp(imageDataBuffer)
-      .resize(400)
-      .webp({ quality: 40 })
-      .toBuffer();
+async function handleRequest(request: Request): Promise<Response> {
+    console.debug(request);
 
-    fs.writeFileSync(galleryFilePath, sharpBuffer);
-    console.log("File transformed");
-  } catch (e: any) {
-    console.error(e);
-    await ogFileWriteResult;
-    fs.unlinkSync(filePath);
+    const imgFolder = import.meta.env["JONASEVERAERT_BE_IMAGE_FOLDER"] ?? "./data/img";
+    const imageData = await request.blob();
+    let originalFilename = request.headers.get("file-name");
+    if (originalFilename == null)
+        return new Response(undefined, { status: StatusCodes.BAD_REQUEST, statusText: "`file-name` header was not provided" })
+    originalFilename = decodeURIComponent(originalFilename);
 
-    console.error(e);
+    const filename = `${randomUUIDv7()}_${originalFilename}`;
 
-    return new Response(null, { status: 500, statusText: "Something unexpected happened, consult the server logs" });
-  }
+    const filePath = `${imgFolder}/original/${filename}`;
+    const galleryFilePath = `${imgFolder}/gallery/${filename}`;
 
-  await ogFileWriteResult;
+    console.debug("Saving to files", filePath, galleryFilePath);
 
-  // Add entry to db when success
-  console.log("Adding image entry...");
-  const res = await db.insert(Image).values({
-    FileName: fileName,
-  });
+    console.log(`Writing original file to ${filePath}...`);
+    const imageDataBuffer = await imageData.arrayBuffer();
+    const ogFileBytesWritten = Bun.write(filePath, imageDataBuffer);
 
-  console.log("Finished");
+    try {
+        console.log("Transforming file...")
+        const sharpBuffer = await sharp(imageDataBuffer)
+            .resize(400)
+            .webp({ quality: 40 })
+            .toBuffer();
 
-  console.log(res);
+        console.log(`Writing transformed file to ${galleryFilePath}...`);
+        await Bun.write(galleryFilePath, sharpBuffer);
+    } catch (e: any) {
+        console.error(e);
+        await ogFileBytesWritten;
+        const ogFile = Bun.file(filePath);
+        ogFile.delete();
 
-  return new Response(null, { status: 200 });
-};
+        return new Response(undefined, { status: StatusCodes.INTERNAL_SERVER_ERROR, statusText: "Something unexpected happened while transforming the iamge, consult the server logs" });
+    }
+
+    await ogFileBytesWritten;
+
+    console.debug("Adding image entry...");
+    const res = await db.insert(Image).values({
+        OriginalFileName: originalFilename,
+        FileName: filename
+    });
+
+    console.debug(res);
+
+    if (res.rowCount != 1) {
+        console.error("No rows inserted");
+        return new Response(undefined, { status: StatusCodes.INTERNAL_SERVER_ERROR, statusText: "This case should never happen" });
+    }
+
+    return new Response(res.FileName, { status: StatusCodes.OK });
+}

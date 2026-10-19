@@ -1,0 +1,79 @@
+---
+import Base from "@layouts/Base.astro";
+import { PhotoList } from "@lib/components/admin/photo-list";
+
+export const prerender = false;
+---
+
+<Base title="Admin" scroll={true}>
+    <style>
+        .section {
+            padding: 1rem;
+        }
+
+        .form > * {
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .validation {
+            color: rgb(var(--functional-red));
+        }
+
+        .validation:empty {
+            display: none;
+        }
+    </style>
+
+    <section id="controls" class="section">
+        <div class="form">
+          <kor-text size="header-1">Afbeelding toevoegen</kor-text>
+          <input type="file" id="file-input" accept="image/*"/> <!-- TODO: allow jpeg XL? -->
+          <kor-text id="validation" class="validation" size="body-1"></kor-text>
+          <kor-button label="Toevoegen" id="submit-button"></kor-button>
+        </div>
+    </section>
+
+    <section id="images" class="section">
+        <kor-text size="header-1">Afbeeldingen</kor-text>
+        <PhotoList client:load />
+    </section>
+
+    <script>
+      import { imagesChangedEvent } from "@lib/components/admin/photo-list";
+
+      const fileInput = document.querySelector<HTMLInputElement>("#file-input")!;
+      const submitButton = document.querySelector("#submit-button")!;
+      const validation = document.querySelector("#validation")!;
+
+      submitButton.addEventListener("click", async () => {
+        validation.textContent = "";
+
+        const file = fileInput.files?.[0];
+        if (file == null) {
+          validation.textContent = "Select an image";
+          return;
+        }
+
+        submitButton.setAttribute("disabled", "true");
+        try {
+          const res = await fetch("/admin/api/add-image", {
+            method: "POST",
+            // URI-encoded, as HTTP headers cannot contain non-ASCII characters
+            headers: { "file-name": encodeURIComponent(file.name) },
+            body: file,
+          });
+
+          if (!res.ok) {
+            validation.textContent = res.statusText || `Failed to add image (status ${res.status})`;
+            return;
+          }
+
+          fileInput.value = "";
+          window.dispatchEvent(new CustomEvent(imagesChangedEvent));
+        } finally {
+          submitButton.removeAttribute("disabled");
+        }
+      });
+    </script>
+</Base>

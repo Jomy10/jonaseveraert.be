@@ -1,78 +1,141 @@
 import type { APIRoute } from "astro";
-import { eq, gt, lt, gte, lte, inArray } from "drizzle-orm";
+import { union } from 'drizzle-orm/pg-core'
+import { eq, gt, lt, and, desc, type SQL, count } from "drizzle-orm";
 import { db } from "@db/index";
 import { Image } from "@db/schema";
+import { StatusCodes } from "http-status-codes";
+import { queryResponse } from "@lib/api/utils";
 
-export const POST: APIRoute = async ({ request }) => {
-  const bodyString = new TextDecoder().decode((await request.body?.getReader().read())?.value);
-  const body = JSON.parse(bodyString);
+export const prerender = false;
 
-  let query: any = db.select().from(Image);
-
-  if (body.fileNames != undefined) {
-    if (typeof body.fileNames === "string") {
-      query = query.where(eq(Image.FileName, body.fileNames));
-    } else {
-      query = query.where(inArray(Image.FileName, body.fileNames));
-    }
-  }
-
-  if (body.ids != undefined) {
-    if (typeof body.ids === "string") {
-      query = query.where(eq(Image.Id, body.ids));
-    } else {
-      query = query.where(inArray(Image.Id, body.ids));
-    }
-  }
-
-  if (body.createdAfter != undefined) {
-    query = query.where(gt(Image.CreatedDate, body.createdAfter));
-  }
-
-  if (body.createdBefore != undefined) {
-    query = query.where(lt(Image.CreatedDate, body.createdBefore))
-  }
-
-  if (body.createdAfterOrEqual != undefined) {
-    query = query.where(gte(Image.CreatedDate, body.createdAfter));
-  }
-
-  if (body.createdBeforeOrEqual != undefined) {
-    query = query.where(lte(Image.CreatedDate, body.createdBefore))
-  }
-
-  const images = await query;
-
-  return new Response(JSON.stringify({ images: images }), { status: 200 });
+interface Request {
+    queries?: ImageQuery[],
+    query?: ImageQuery,
+    // Overwrites query parameters
+    page?: number,
+    // Overwrites query parameters
+    page_size?: number
+    with_count?: boolean
 };
 
-// export const POST: APIRoute = async ({ request }) => {
-//   console.log(request);
+interface ImageQuery {
+    id?: number,
+    file_name?: string,
+    created?:
+        { on: string } |
+        { after: string } |
+        { before: string }
+};
 
-//   const bodyString = new TextDecoder().decode((await request.body?.getReader().read())?.value);
-//   console.log(bodyString);
-//   const body = JSON.parse(bodyString);
+function createImageQuery(query: ImageQuery, get_count: boolean = false) {
+    let where_clause: SQL[] = [];
+    if (query.id != null) {
+        where_clause.push(eq(Image.Id, query.id));
+    }
 
-//   console.log("request query", body);
+    if (query.file_name != null) {
+        where_clause.push(eq(Image.FileName, query.file_name));
+    }
 
-//   // Any text field (filename)
-//   const searchText: string | undefined = body.textFields;
+    if (query.created != null) {
+        if ('on' in query.created) {
+            // @ts-ignore
+            where_clause.push(eq(Image.CreatedDate, new Date(query.created.on)));
+        } else if ('after' in query.created) {
+            // @ts-ignore
+            where_clause.push(gt(Image.CreatedDate, new Date(query.created.after)));
+        } else if ('before' in query.created) {
+            // @ts-ignore
+            where_clause.push(lt(Image.CreatedDate, new Date(query.created.before)));
+        }
+    }
 
-//   // The sequence id of the image, sorted by created date
-//   const sequenceId: number | undefined = body.sequenceId;
+    let q;
+    if (get_count) {
+        q = db.select({ count: count() }).from(Image)
+    } else {
+        q = db.select().from(Image);
+    }
+    return q.where(where_clause.length > 0 ? and(...where_clause) : undefined);
+}
 
-//   let query: any = db.select().from(Image)
+export const POST: APIRoute = async ({ request, url }) => {
+    try {
+        return await handleRequest(request, url);
+    } catch (e: any) {
+        return new Response(undefined, {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            statusText: (e.message ?? "Internal server error")
+                .replace(/[\x00-\x08\x0A-\x1F\x7F-\uFFFF]/g, " ")
+                .slice(0, 512)
+        });
+    }
+};
 
-//   if (searchText != undefined)
-//     query = query.where(eq(Image.FileName, searchText));
+async function handleRequest(request: globalThis.Request, url: URL): Promise<Response> {
+    const bodyString: string = await request.text();
+    const body: Request = bodyString.trim().length > 0 ? JSON.parse(bodyString) : {};
 
-//   if (sequenceId != undefined)
-//     query = query
-//       .orderBy(desc(Image.CreatedDate))
-//       .offset(sequenceId)
-//       .limit(1);
+    const page_size = body.page_size || parseInt(url.searchParams.get("page_size") as string) || 50;
+    const page = body.page || parseInt(url.searchParams.get("page") as string) || 0;
+    const with_count = body.with_count || false;
 
-//   const images = await query;
+    // Single query
+    if ('query' in body) {
+        const query = createImageQuery(body.query!);
+        let qcount = 0;
+        if (with_count) {
+            qcount = (await db.select({ count: count() }).from(query.as("t")))[0].count;
+        }
+        const result = await query
+            .orderBy(desc(Image.GalleryOrder))
+            .limit(page_size + 1)
+            .offset(page * page_size);
+        return queryResponse(
+            result,
+            page_size, page,
+            url,
+            "images",
+            with_count ? { count: qcount } : null
+        );
+    }
 
-//   return new Response(JSON.stringify({ images: images }), { status: 200 });
-// };
+    // No query
+    if (!('queries' in body) || body.queries == null || body.queries.length == 0) {
+        let qcount = 0;
+        if (with_count)
+            qcount = (await db.select({ count: count() }).from(Image))[0].count;
+        const result = await db.select().from(Image)
+            .orderBy(desc(Image.GalleryOrder))
+            .limit(page_size + 1)
+            .offset(page * page_size);
+        return queryResponse(
+            result,
+            page_size, page,
+            url,
+            "images",
+            with_count ? { count: qcount } : null
+        )
+    }
+
+    // Multiple queries
+    let queries: ReturnType<typeof createImageQuery>[] = [];
+    for (let query of body.queries) {
+        queries.push(createImageQuery(query));
+    }
+
+    // @ts-ignore
+    let query = queries.length == 1 ? queries[0] : union(...queries);
+
+    let qcount = 0;
+    if (with_count) {
+        qcount = (await db.select({ count: count() }).from(query.as("t")))[0].count;
+    }
+
+    const result = await query
+        .orderBy(desc(Image.GalleryOrder))
+        .limit(page_size + 1) // fetch one extra row to check that there is still more data
+        .offset(page * page_size);
+
+    return queryResponse(result, page_size, page, url, "images", with_count ? { count: qcount } : null);
+}
